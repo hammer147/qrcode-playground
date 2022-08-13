@@ -5,11 +5,7 @@ import { useRef, useState } from 'react'
 import Modal from 'react-modal'
 import { DownloadIcon } from '@heroicons/react/outline'
 import { ClipboardCopyIcon } from '@heroicons/react/outline'
-import { XIcon } from '@heroicons/react/outline'
-import html2canvas from 'html2canvas'
-import { jsPDF } from 'jspdf'
-
-
+import { copyImage, downloadImage, downloadPdf } from '../utils/element2image'
 
 Modal.setAppElement('#__next')
 
@@ -21,48 +17,9 @@ const Home: NextPage = () => {
   const openModal = () => setModalIsOpen(true)
   const closeModal = () => setModalIsOpen(false)
 
-  const handleCopyImage = async () => {
-    const element = printRef.current
-    const canvas = await html2canvas(element!)
-
-    canvas.toBlob(function (blob) {
-      const item = new ClipboardItem({ "image/png": blob! })
-      navigator.clipboard.write([item])
-    })
-  }
-
-  const handleDownloadImage = async () => {
-    const element = printRef.current
-    const canvas = await html2canvas(element!)
-
-    const data = canvas.toDataURL('image/png')
-    const link = document.createElement('a')
-
-    if (typeof link.download === 'string') {
-      link.href = data
-      link.download = 'image.png'
-
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    } else {
-      window.open(data)
-    }
-  }
-
-  const handleDownloadPdf = async () => {
-    const element = printRef.current
-    const canvas = await html2canvas(element!)
-    const data = canvas.toDataURL('image/png')
-
-    const pdf = new jsPDF()
-    const imgProperties = pdf.getImageProperties(data)
-    const pdfWidth = pdf.internal.pageSize.getWidth()
-    const pdfHeight = (imgProperties.height * pdfWidth) / imgProperties.width
-
-    pdf.addImage(data, 'PNG', 0, 0, pdfWidth, pdfHeight)
-    pdf.save('print.pdf')
-  }
+  const handleCopyImage = () => copyImage(printRef.current!)
+  const handleDownloadImage = () => downloadImage(printRef.current!, 'QRCode', 'png')
+  const handleDownloadPdf = () => downloadPdf(printRef.current!, 'QRCode')
 
   return (
     <>
@@ -87,16 +44,7 @@ const Home: NextPage = () => {
           /** custom styles: the overlay has Modal as its only child, so it can be easily centered with flex */
           overlayClassName='fixed top-0 left-0 right-0 bottom-0 bg-white/[.75] flex justify-center items-center'
           className='border border-slate-600 rounded bg-slate-100 overflow-auto outline-none p-3'
-
         >
-          {/* <div className='flex justify-end items-center'>
-            <button
-              className='text-slate-600 hover:text-slate-700'
-              onClick={closeModal}
-            >
-              <XIcon className="h-6 w-6"/>
-            </button>
-          </div> */}
 
           <div ref={printRef} className='flex flex-col justify-center items-center border border-gray-600 rounded bg-white p-2'>
             <h2 className='text-green-500 text-lg font-bold mb-1'>Lost and Found</h2>
